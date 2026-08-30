@@ -81,4 +81,47 @@ describe("reporters", () => {
     assert.match(renderText(report, context), /No semantic changes\./u);
     assert.match(renderMarkdown(report, context), /## mmdelta: unchanged/u);
   });
+
+  it("renders gained paths and nested subgraph context", () => {
+    const report = diffGraphs(
+      parseFlowchart(`flowchart LR
+        start
+        finish
+        subgraph outer [Outer]
+          subgraph inner [Inner]
+            nested[Node]
+          end
+        end
+      `),
+      parseFlowchart(`flowchart LR
+        start --> finish
+        subgraph outer [Outer]
+          subgraph inner [Renamed]
+            nested[Node]
+          end
+          subgraph extra [Extra]
+            extra_node[Extra node]
+          end
+        end
+      `),
+    );
+    const text = renderText(report, context);
+    const markdown = renderMarkdown(report, context);
+
+    assert.match(text, /\+ start => finish/u);
+    assert.match(text, /extra "Extra" in outer/u);
+    assert.match(markdown, /### Gained paths/u);
+    assert.match(markdown, /`extra`.*`Extra`.*`outer`/u);
+  });
+
+  it("uses safe variable-length Markdown code fences", () => {
+    const graph = parseFlowchart("flowchart LR\nA --> B");
+    const output = renderMarkdown(diffGraphs(graph, graph), {
+      beforePath: "before`name.mmd",
+      afterPath: "`after`.mmd",
+    });
+
+    assert.match(output, /``before`name\.mmd``/u);
+    assert.match(output, /`` `after`\.mmd ``/u);
+  });
 });

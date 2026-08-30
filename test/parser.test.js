@@ -183,11 +183,87 @@ describe("parseFlowchart", () => {
     );
   });
 
+  it("rejects non-text and empty input", () => {
+    assert.throws(
+      () => parseFlowchart(null),
+      (error) => error instanceof MmdeltaError && error.code === "INVALID_INPUT",
+    );
+    assert.throws(
+      () => parseFlowchart("\n%% only a comment\n"),
+      (error) => error instanceof MmdeltaError && error.code === "EMPTY_INPUT" && error.line === 1,
+    );
+  });
+
+  it("rejects malformed subgraphs and conflicting identifiers", () => {
+    assert.throws(
+      () => parseFlowchart("flowchart LR\nsubgraph not valid label\nend"),
+      (error) => error instanceof MmdeltaError && error.code === "UNSUPPORTED_SYNTAX",
+    );
+    assert.throws(
+      () =>
+        parseFlowchart(`flowchart LR
+          subgraph api [Public]
+          end
+          subgraph api [Internal]
+          end
+        `),
+      (error) =>
+        error instanceof MmdeltaError &&
+        error.code === "UNSUPPORTED_SYNTAX" &&
+        error.message.includes("conflicting"),
+    );
+  });
+
+  it("allows the same stable subgraph declaration to recur", () => {
+    const graph = parseFlowchart(`flowchart LR
+      subgraph api [Public]
+        A
+      end
+      subgraph api [Public]
+        B
+      end
+    `);
+
+    assert.equal(graph.subgraphs.size, 1);
+    assert.equal(graph.nodes.get("B").subgraph, "api");
+  });
+
+  it("rejects broken edge boundaries and invalid node identifiers", () => {
+    const cases = [
+      "flowchart LR\n--> B",
+      "flowchart LR\nA -->",
+      "flowchart LR\nA -->|missing B",
+      "flowchart LR\nA] --> B",
+      "flowchart LR\n123[No]",
+    ];
+
+    for (const source of cases) {
+      assert.throws(
+        () => parseFlowchart(source),
+        (error) => error instanceof MmdeltaError && error.code === "UNSUPPORTED_SYNTAX",
+      );
+    }
+  });
+
+  it("keeps comment markers and escaped quotes inside quoted labels", () => {
+    const graph = parseFlowchart('flowchart LR\nA["100%% \\"ready\\""] --> B');
+
+    assert.equal(graph.nodes.get("A").label, '100%% "ready"');
+  });
+
   it("rejects graphs larger than the node limit", () => {
     const nodes = Array.from({ length: LIMITS.maxNodes + 1 }, (_, index) => `N${index}`);
     assert.throws(
       () => parseFlowchart(`flowchart LR\n${nodes.join("\n")}`),
       (error) => error instanceof MmdeltaError && error.code === "TOO_MANY_NODES",
+    );
+  });
+
+  it("rejects graphs larger than the edge limit", () => {
+    const edges = Array.from({ length: LIMITS.maxEdges + 1 }, () => "A --> B");
+    assert.throws(
+      () => parseFlowchart(`flowchart LR\n${edges.join("\n")}`),
+      (error) => error instanceof MmdeltaError && error.code === "TOO_MANY_EDGES",
     );
   });
 });

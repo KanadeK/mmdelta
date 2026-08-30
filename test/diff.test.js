@@ -178,4 +178,18 @@ describe("diffGraphs", () => {
       breaking: 4,
     });
   });
+
+  it("handles removal of an old entry without inventing path findings", () => {
+    const result = compare(
+      `flowchart LR
+        start --> middle --> done
+      `,
+      `flowchart LR
+        middle --> done
+      `,
+    );
+
+    assert.deepEqual(result.paths, { lost: [], gained: [] });
+    assert.equal(result.nodes.removed[0].id, "start");
+  });
 });

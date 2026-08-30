@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, stat, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
@@ -26,7 +26,7 @@ export async function main(arguments_ = process.argv.slice(2), io = process) {
       return 0;
     }
 
-    assertOutputDoesNotConflict(command);
+    await assertOutputDoesNotConflict(command);
     const [before, after] = await Promise.all([
       readGraph(command.beforePath),
       readGraph(command.afterPath),
@@ -136,7 +136,7 @@ async function readGraph(path) {
   }
 }
 
-function assertOutputDoesNotConflict(command) {
+async function assertOutputDoesNotConflict(command) {
   if (!command.outputPath) {
     return;
   }
@@ -146,11 +146,43 @@ function assertOutputDoesNotConflict(command) {
       hint: "Choose a separate report path so the source diagram cannot be overwritten.",
     });
   }
+
+  const outputIdentity = await fileIdentity(command.outputPath);
+  if (!outputIdentity) {
+    return;
+  }
+  for (const inputPath of [command.beforePath, command.afterPath]) {
+    const inputIdentity = await fileIdentity(inputPath);
+    if (
+      inputIdentity &&
+      outputIdentity.device === inputIdentity.device &&
+      outputIdentity.inode === inputIdentity.inode
+    ) {
+      throw new MmdeltaError("OUTPUT_CONFLICT", "The output file aliases an input file.", {
+        hint: "Choose a new report file, not a hard link or symbolic link to an input.",
+      });
+    }
+  }
 }
 
 function comparablePath(path) {
   const absolute = resolve(path);
   return process.platform === "win32" ? absolute.toLowerCase() : absolute;
+}
+
+async function fileIdentity(path) {
+  try {
+    const metadata = await stat(path);
+    return { device: metadata.dev, inode: metadata.ino };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return null;
+    }
+    throw new MmdeltaError("PATH_INSPECTION_FAILED", `Could not inspect ${path}.`, {
+      cause: error,
+      hint: "Check the file and parent-directory permissions.",
+    });
+  }
 }
 
 function render(report, context, format) {

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { link, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -107,6 +107,18 @@ describe("mmdelta CLI", () => {
     assert.equal(await readFile(files.beforePath, "utf8"), before);
   });
 
+  it("refuses an output hard link that aliases an input file", async () => {
+    const before = "flowchart LR\nA";
+    const files = await fixture(before, "flowchart LR\nA --> B");
+    const aliasPath = join(files.directory, "before-alias.mmd");
+    await link(files.beforePath, aliasPath);
+    const result = run("diff", files.beforePath, files.afterPath, "--output", aliasPath);
+
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /OUTPUT_CONFLICT/u);
+    assert.equal(await readFile(files.beforePath, "utf8"), before);
+  });
+
   it("rejects invalid options and prints focused help", async () => {
     const files = await fixture("flowchart LR\nA", "flowchart LR\nB");
     const invalid = run("diff", files.beforePath, files.afterPath, "--format", "xml");
@@ -118,5 +130,36 @@ describe("mmdelta CLI", () => {
     assert.equal(help.status, 0);
     assert.match(help.stdout, /mmdelta diff <before\.mmd> <after\.mmd>/u);
     assert.equal(version.stdout.trim(), "mmdelta 0.1.0");
+  });
+
+  it("rejects unknown flags, invalid usage, and invalid fail policies", async () => {
+    const files = await fixture("flowchart LR\nA", "flowchart LR\nB");
+    const unknown = run("diff", files.beforePath, files.afterPath, "--wat");
+    const usage = run("compare", files.beforePath, files.afterPath);
+    const policy = run("diff", files.beforePath, files.afterPath, "--fail-on", "maybe");
+
+    assert.equal(unknown.status, 2);
+    assert.match(unknown.stderr, /INVALID_OPTION/u);
+    assert.equal(usage.status, 2);
+    assert.match(usage.stderr, /INVALID_USAGE/u);
+    assert.equal(policy.status, 2);
+    assert.match(policy.stderr, /Unsupported fail policy/u);
+  });
+
+  it("reports input read and output write failures", async () => {
+    const files = await fixture("flowchart LR\nA", "flowchart LR\nB");
+    const missingInput = run("diff", join(files.directory, "missing.mmd"), files.afterPath);
+    const missingOutputDirectory = run(
+      "diff",
+      files.beforePath,
+      files.afterPath,
+      "--output",
+      join(files.directory, "missing", "report.txt"),
+    );
+
+    assert.equal(missingInput.status, 2);
+    assert.match(missingInput.stderr, /INPUT_READ_FAILED/u);
+    assert.equal(missingOutputDirectory.status, 2);
+    assert.match(missingOutputDirectory.stderr, /OUTPUT_WRITE_FAILED/u);
   });
 });

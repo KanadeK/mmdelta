@@ -18,8 +18,8 @@
     "lint": "eslint .",
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=src/**/*.js --test-coverage-lines=90 --test-coverage-branches=90 --test-coverage-functions=90",
-    "build": "npm pack --dry-run --json",
-    "demo": "node src/cli.js diff examples/before.mmd examples/after.mmd --format text",
+    "build": "node scripts/verify-package.mjs",
+    "demo": "node src/cli.js diff examples/before.mmd examples/after.mmd --format text --fail-on never",
     "check": "node scripts/check.mjs",
     "package:release": "node scripts/package.mjs"
   },

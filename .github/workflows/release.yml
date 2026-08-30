@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      npm_config_cache: ${{ runner.temp }}/npm-cache
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Verify tag matches package version
+        run: node scripts/assert-tag.mjs
+      - name: Run release-equivalent gate
+        run: npm run check
+      - name: Build release assets
+        run: npm run package:release
+      - name: Create immutable GitHub Release
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          dist/mmdelta-0.1.0.tgz
+          dist/SHA256SUMS
+          --verify-tag
+          --title "mmdelta 0.1.0"
+          --notes-file docs/release-notes-v0.1.0.md

@@ -1,0 +1,50 @@
+{
+  "name": "mmdelta",
+  "version": "0.1.0",
+  "description": "Semantic diffs for Mermaid flowcharts, without rendering noise.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "mmdelta": "./src/cli.js"
+  },
+  "exports": "./src/index.js",
+  "files": [
+    "src/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=src/**/*.js --test-coverage-lines=90 --test-coverage-branches=90 --test-coverage-functions=90",
+    "build": "npm pack --dry-run --json",
+    "demo": "node src/cli.js diff examples/before.mmd examples/after.mmd --format text",
+    "check": "node scripts/check.mjs",
+    "package:release": "node scripts/package.mjs"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "packageManager": "npm@11.16.0",
+  "keywords": [
+    "mermaid",
+    "diagram",
+    "diff",
+    "cli",
+    "ci"
+  ],
+  "author": "KanadeK <121669563+KanadeK@users.noreply.github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KanadeK/mmdelta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KanadeK/mmdelta/issues"
+  },
+  "homepage": "https://github.com/KanadeK/mmdelta#readme",
+  "devDependencies": {
+    "eslint": "10.9.1"
+  }
+}

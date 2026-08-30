@@ -23,6 +23,7 @@ Searches also covered `Mermaid semantic diff`, `Mermaid graph diff`, `mmd diff`,
 - The [official syntax reference](https://mermaid.js.org/intro/syntax-reference.html) warns that unknown words and misspellings break diagrams. mmdelta therefore fails on unsupported statements instead of silently dropping them.
 - Mermaid's current flowchart parser has a reported [quadratic whitespace case](https://github.com/mermaid-js/mermaid/issues/8127). mmdelta does not import or execute the renderer/parser and applies explicit input/graph limits.
 - Node's documented [`util.parseArgs`](https://nodejs.org/download/release/v24.4.0/docs/api/util.html#utilparseargsconfig) provides the CLI option contract, and the [Node test runner](https://nodejs.org/download/release/v24.13.1/docs/api/test.html) supplies built-in coverage thresholds.
+- GitHub's official [`setup-node`](https://github.com/actions/setup-node/blob/main/README.md) documents the v6 Node matrix setup, and [`checkout`](https://github.com/actions/checkout) documents the read-only `contents` permission used by CI.
 
 ## Rejected alternatives
 

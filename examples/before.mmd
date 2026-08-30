@@ -1,0 +1,6 @@
+flowchart LR
+  start([Release candidate]) --> validate{Validation passes?}
+  validate -->|yes| publish[Publish]
+  publish --> done((Done))
+  validate -->|no| revise[Revise]
+  revise --> validate

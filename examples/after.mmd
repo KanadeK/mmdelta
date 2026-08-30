@@ -1,0 +1,7 @@
+flowchart TB
+  %% The approved publish route disappeared and a bypass was introduced.
+  start([Release candidate]) --> validate{Validation passes?}
+  validate -->|no| revise[Revise]
+  revise --> validate
+  validate -.->|manual bypass| archive[(Archive)]
+  done((Done))

@@ -44,7 +44,19 @@
 
 ## Task 7: Publish and independently verify v0.1.0
 
-- [ ] Acceptance: exact commit is pushed and tagged; CI and Release are green/public.
-- [ ] Acceptance: downloaded tarball installs in a fresh directory and executes the example.
-- [ ] Acceptance: contributors show only the intended author and Gmail notification is sent.
-- [ ] Verify: public URLs, asset hashes, fresh-install output, and sent-message evidence.
+- [x] Acceptance: exact commit is pushed and tagged; CI and Release are green/public.
+- [x] Acceptance: downloaded tarball installs in a fresh directory and executes the example.
+- [x] Acceptance: contributors show only the intended author and Gmail notification is sent.
+- [x] Verify: public URLs, asset hashes, fresh-install output, and sent-message evidence.
+
+## Verified release closure — 2026-10-07
+
+- Public repository: https://github.com/KanadeK/mmdelta
+- Annotated `v0.1.0` tag: `cf05f71d94612f03f531e168af4172e8686a893f`.
+- CI: https://github.com/KanadeK/mmdelta/actions/runs/37735719965 — all four Ubuntu/Windows and Node 22.13/24 jobs passed.
+- Release workflow: https://github.com/KanadeK/mmdelta/actions/runs/37735834156 — passed.
+- Public Release: https://github.com/KanadeK/mmdelta/releases/tag/v0.1.0 — non-draft, non-prerelease; tarball and `SHA256SUMS` uploaded.
+- Downloaded public tarball matched its published checksum. Fresh installation passed the command wrapper, real example, and exit codes `0`, `1`, and `2`.
+- All 46 tests passed; overall coverage was 98.94% lines, 94.10% branches, and 100% functions. Dependency audit reported zero vulnerabilities.
+- Contributor list contained only `KanadeK`. Gmail notification was sent after the published-package checks.
+- The release tag remains on the validated release commit; this checklist is a later documentation-only update.

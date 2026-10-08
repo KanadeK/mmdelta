@@ -17,7 +17,6 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
-      npm_config_cache: ${{ runner.temp }}/npm-cache
     steps:
       - uses: actions/checkout@v6
         with:

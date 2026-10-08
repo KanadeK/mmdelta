@@ -25,7 +25,7 @@ A review that changes `flowchart TD` to `flowchart LR`, reorders declarations, a
 mmdelta BREAKING
 before: examples/before.mmd (5 nodes, 5 edges)
 after:  examples/after.mmd (5 nodes, 4 edges)
-changes: 7 total, 4 breaking
+changes: 6 total, 4 breaking
 
 Nodes:
   + archive [cylinder] "Archive"
@@ -53,7 +53,7 @@ node src/cli.js diff examples/before.mmd examples/after.mmd --fail-on never
 
 The example contains real topology changes: the guarded publish route is removed, a manual bypass to an archive is added, and the old `start → done` route becomes unreachable.
 
-After v0.1.0 is released, the packaged CLI can be installed directly from the GitHub Release without an npm-registry publication:
+The packaged CLI can be installed directly from the GitHub Release:
 
 ```bash
 npm install --global https://github.com/KanadeK/mmdelta/releases/download/v0.1.0/mmdelta-0.1.0.tgz
